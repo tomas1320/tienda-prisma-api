@@ -1,0 +1,105 @@
+openapi: 3.1.0
+info:
+  title: API de pedidos
+  version: 1.0.0
+  description: API para procesar pedidos con control transaccional de inventario.
+servers:
+  - url: http://localhost:3000
+paths:
+  /api/pedidos:
+    post:
+      summary: Procesar un pedido
+      operationId: crearPedido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearPedidoRequest'
+            example:
+              usuarioId: 1
+              productosComprados:
+                - productoId: 3
+                  cantidad: 2
+      responses:
+        '201':
+          description: Pedido creado y stock actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pedido'
+        '400':
+          description: Datos inválidos, usuario o producto inexistente, o stock insuficiente. La transacción se revierte.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    CrearPedidoRequest:
+      type: object
+      required:
+        - usuarioId
+        - productosComprados
+      properties:
+        usuarioId:
+          type: integer
+          minimum: 1
+        productosComprados:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ProductoComprado'
+    ProductoComprado:
+      type: object
+      required:
+        - productoId
+        - cantidad
+      properties:
+        productoId:
+          type: integer
+          minimum: 1
+        cantidad:
+          type: integer
+          minimum: 1
+    Pedido:
+      type: object
+      properties:
+        id:
+          type: integer
+        usuarioId:
+          type: integer
+        fecha:
+          type: string
+          format: date-time
+        total:
+          type: string
+          example: '39.98'
+        usuario:
+          type: object
+        detalles:
+          type: array
+          items:
+            type: object
+            properties:
+              productoId:
+                type: integer
+              cantidad:
+                type: integer
+              precioUnitario:
+                type: string
+              producto:
+                type: object
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
